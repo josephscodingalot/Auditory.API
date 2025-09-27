@@ -1,0 +1,26 @@
+﻿# Rider IDE
+.idea/
+*.sln.iml
+
+# Visual Studio
+.vs/
+*.user
+*.suo
+
+# Build outputs
+bin/
+obj/
+out/
+
+# Logs
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Node.js (React frontend)
+node_modules/
+build/
+dist/
+.env
