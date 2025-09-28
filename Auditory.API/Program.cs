@@ -2,6 +2,13 @@ using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
+var mongoSettings = builder.Configuration.GetSection("MongoDbSettings");
+
+builder.Services.AddSingleton(new Auditory.Infrastructure.Persistence.MongoDbContext(
+    mongoSettings.GetValue<string>("ConnectionString") ?? throw new InvalidOperationException("MongoDB connection string is not configured."),
+    mongoSettings.GetValue<string>("DatabaseName") ?? throw new InvalidOperationException("MongoDB database name is not configured.")
+));
+
 //Add services to the container.
 builder.Services.AddControllers();
 
