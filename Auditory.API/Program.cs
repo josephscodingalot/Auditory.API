@@ -1,7 +1,12 @@
+using Auditory.API.Middleware;
 using Auditory.Application.Mappings;
 using Auditory.Domain.Interfaces;
 using Auditory.Infrastructure.Repositories;
 using Microsoft.OpenApi.Models;
+using FluentValidation.AspNetCore;
+using Auditory.Application.Behaviors;
+using Auditory.Application.Handlers;
+using MediatR;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,7 +20,10 @@ builder.Services.AddSingleton(new Auditory.Infrastructure.Persistence.MongoDbCon
 builder.Services.AddScoped<IStreamRepository, StreamRepository>();
 
 //Add services to the container.
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddFluentValidation(fv => fv.RegisterValidatorsFromAssemblyContaining<Auditory.Application.Queries.GetStreamsByUserQuery>());
+builder.Services.AddMediatR(cfg =>
+    cfg.RegisterServicesFromAssemblyContaining<GetStreamsByUserHandler>()); 
 
 //Add swagger generation
 builder.Services.AddEndpointsApiExplorer();
@@ -36,7 +44,9 @@ builder.Services.AddSwaggerGen(c =>
 
 builder.Services.AddAutoMapper(typeof(StreamProfile));
 
+builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
 
+builder.WebHost.UseUrls("http://localhost:8001");
 
 var app = builder.Build();
 
@@ -47,9 +57,11 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI(c =>
     {
         c.SwaggerEndpoint("/swagger/v1/swagger.json", "Auditory API v1");
-        c.RoutePrefix = string.Empty; // Set Swagger UI at the app's root
+        c.RoutePrefix = string.Empty; 
     });
 }
+
+app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 app.UseHttpsRedirection();
 app.MapControllers();
