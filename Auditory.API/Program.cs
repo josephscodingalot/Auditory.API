@@ -1,3 +1,4 @@
+using Auditory.Application.Mappings;
 using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -21,6 +22,8 @@ builder.Services.AddSwaggerGen(c =>
         }
     });
 });
+
+builder.Services.AddAutoMapper(typeof(StreamProfile));
 
 var app = builder.Build();
 
