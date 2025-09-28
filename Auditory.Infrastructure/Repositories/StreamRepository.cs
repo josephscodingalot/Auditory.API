@@ -1,118 +1,131 @@
 ﻿using Auditory.Domain.Interfaces;
+using Auditory.Infrastructure.Persistence;
+using MongoDB.Bson;
+using MongoDB.Driver;
+using Stream = Auditory.Domain.Entities.Stream;
 
 namespace Auditory.Infrastructure.Repositories;
 
-public class StreamRepository : IStreamRepository
+public class StreamRepository(MongoDbContext context) : IStreamRepository
 {
-    private readonly MongoDbContext _context;
+    private readonly MongoDbContext _context = context ?? throw new ArgumentNullException(nameof(context));
 
-    public StreamRepository(MongoDbContext context)
+    public async Task AddStreamAsync(Stream stream)
     {
-        _context = context ?? throw new ArgumentNullException(nameof(context));
+        await _context.Streams.InsertOneAsync(stream);
     }
     
-    public Task AddStreamAsync(Stream stream)
+    public async Task AddStreamsRangeAsync(IEnumerable<Stream> streams)
     {
-        throw new NotImplementedException();
+        await _context.Streams.InsertManyAsync(streams);
     }
 
-    public Task<Stream?> GetStreamByIdAsync(Guid id)
+    public async Task<Stream?> GetStreamByIdAsync(Guid id)
     {
-        throw new NotImplementedException();
+        return await _context.Streams.Find(s => s.Id == id).FirstOrDefaultAsync();
     }
 
-    public Task<IEnumerable<Stream>> GetAllStreamsAsync()
+    public async Task<IEnumerable<Stream>> GetAllStreamsAsync()
     {
-        throw new NotImplementedException();
+        return await _context.Streams.Find(s => true).ToListAsync();
     }
 
-    public Task UpdateStreamAsync(Stream stream)
+    public async Task UpdateStreamAsync(Stream stream)
     {
-        throw new NotImplementedException();
+        await _context.Streams.ReplaceOneAsync(s => s.Id == stream.Id, stream);
     }
 
-    public Task DeleteStreamAsync(Guid id)
+    public async Task DeleteStreamAsync(Guid id)
     {
-        throw new NotImplementedException();
+        await _context.Streams.DeleteOneAsync(s => s.Id == id);
     }
 
-    public Task<IEnumerable<Stream>> GetStreamsByUserNameAsync(string userName)
+    public async Task<IEnumerable<Stream>> GetStreamsByUserNameAsync(string userName)
     {
-        throw new NotImplementedException();
+        return await _context.Streams.Find(s => s.UserName == userName).ToListAsync(); 
     }
 
-    public Task<IEnumerable<Stream>> GetStreamsByArtistNameAsync(string artistName)
+    public async Task<IEnumerable<Stream>> GetStreamsByArtistNameAsync(string artistName)
     {
-        throw new NotImplementedException();
+        return await _context.Streams.Find(s => s.ArtistName == artistName).ToListAsync();
     }
 
-    public Task<IEnumerable<Stream>> GetStreamsByAlbumNameAsync(string albumName)
+    public async Task<IEnumerable<Stream>> GetStreamsByAlbumNameAsync(string albumName)
     {
-        throw new NotImplementedException();
+        return await _context.Streams.Find(s => s.AlbumName == albumName).ToListAsync();
     }
 
-    public Task<IEnumerable<Stream>> GetStreamsByTrackNameAsync(string trackName)
+    public async Task<IEnumerable<Stream>> GetStreamsByTrackNameAsync(string trackName)
     {
-        throw new NotImplementedException();
+        return await _context.Streams.Find(s => s.TrackName == trackName).ToListAsync();
     }
 
-    public Task<IEnumerable<Stream>> GetStreamsByDateRangeAsync(DateTime startDate, DateTime endDate)
+    public async Task<IEnumerable<Stream>> GetStreamsByDateRangeAsync(DateTime startDate, DateTime endDate)
     {
-        throw new NotImplementedException();
+        return await _context.Streams.Find(s => s.Timestamp >= startDate && s.Timestamp <= endDate).ToListAsync();
     }
 
-    public Task<int> GetTotalStreamsCountAsync()
+    public async Task<long> GetTotalStreamsCountAsync()
     {
-        throw new NotImplementedException();
+        return await _context.Streams.Find(s => true).CountDocumentsAsync();
     }
 
-    public Task<int> GetTotalMsPlayedAsync()
+    public async Task<int> GetTotalMsPlayedAsync()
     {
-        throw new NotImplementedException();
+        return await _context.Streams.Aggregate()
+            .Group(new BsonDocument 
+            { 
+                { "_id", BsonNull.Value }, 
+                { "TotalMsPlayed", new BsonDocument("$sum", "$MsPlayed") } 
+            })
+            .FirstOrDefaultAsync()
+            .ContinueWith(t => t.Result?["TotalMsPlayed"].AsInt32 ?? 0);
     }
 
-    public Task<Dictionary<string, int>> GetStreamsCountByPlatformAsync()
+    public async Task<Dictionary<string, int>> GetStreamsCountByPlatformAsync()
     {
-        throw new NotImplementedException();
+        return await _context.Streams.Aggregate()
+            .Group(s => s.Platform, g => new { Platform = g.Key, Count = g.Count() })
+            .ToListAsync()
+            .ContinueWith(t => t.Result.ToDictionary(x => x.Platform, x => x.Count));
     }
 
-    public Task<Dictionary<string, int>> GetStreamsCountByCountryAsync()
+    public async Task<Dictionary<string, int>> GetStreamsCountByCountryAsync()
     {
-        throw new NotImplementedException();
+        return await _context.Streams.Aggregate()
+            .Group(s => s.ConnCountry, g => new { Country = g.Key, Count = g.Count() })
+            .ToListAsync()
+            .ContinueWith(t => t.Result.ToDictionary(x => x.Country, x => x.Count));
     }
 
-    public Task<Dictionary<string, int>> GetTopArtistsAsync(int topN)
+    public async Task<Dictionary<string, int>> GetTopArtistsAsync(int topN)
     {
-        throw new NotImplementedException();
+        return await _context.Streams.Aggregate()
+            .Group(s => s.ArtistName, g => new { Artist = g.Key, Count = g.Count() })
+            .SortByDescending(g => g.Count)
+            .Limit(topN)
+            .ToListAsync()
+            .ContinueWith(t => t.Result.ToDictionary(x => x.Artist, x => x.Count));
     }
 
-    public Task<Dictionary<string, int>> GetTopAlbumsAsync(int topN)
+    public async Task<Dictionary<string, int>> GetTopAlbumsAsync(int topN)
     {
-        throw new NotImplementedException();
+        return await _context.Streams.Aggregate()
+            .Group(s => s.AlbumName, g => new { Album = g.Key, Count = g.Count() })
+            .SortByDescending(g => g.Count)
+            .Limit(topN)
+            .ToListAsync()
+            .ContinueWith(t => t.Result.ToDictionary(x => x.Album, x => x.Count));
     }
 
-    public Task<Dictionary<string, int>> GetTopTracksAsync(int topN)
+    public async Task<Dictionary<string, int>> GetTopTracksAsync(int topN)
     {
-        throw new NotImplementedException();
+        return await _context.Streams.Aggregate()
+            .Group(s => s.TrackName, g => new { Track = g.Key, Count = g.Count() })
+            .SortByDescending(g => g.Count)
+            .Limit(topN)
+            .ToListAsync()
+            .ContinueWith(t => t.Result.ToDictionary(x => x.Track, x => x.Count));
     }
-
-    public Task<double> GetAverageMsPlayedAsync()
-    {
-        throw new NotImplementedException();
-    }
-
-    public Task<int> GetTotalSkippedStreamsAsync()
-    {
-        throw new NotImplementedException();
-    }
-
-    public Task<int> GetTotalOfflineStreamsAsync()
-    {
-        throw new NotImplementedException();
-    }
-
-    public Task<int> GetTotalIncognitoStreamsAsync()
-    {
-        throw new NotImplementedException();
-    }
+    
 }

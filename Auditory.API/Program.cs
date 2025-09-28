@@ -1,4 +1,6 @@
 using Auditory.Application.Mappings;
+using Auditory.Domain.Interfaces;
+using Auditory.Infrastructure.Repositories;
 using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -9,6 +11,8 @@ builder.Services.AddSingleton(new Auditory.Infrastructure.Persistence.MongoDbCon
     mongoSettings.GetValue<string>("ConnectionString") ?? throw new InvalidOperationException("MongoDB connection string is not configured."),
     mongoSettings.GetValue<string>("DatabaseName") ?? throw new InvalidOperationException("MongoDB database name is not configured.")
 ));
+
+builder.Services.AddScoped<IStreamRepository, StreamRepository>();
 
 //Add services to the container.
 builder.Services.AddControllers();
@@ -31,6 +35,8 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 builder.Services.AddAutoMapper(typeof(StreamProfile));
+
+
 
 var app = builder.Build();
 

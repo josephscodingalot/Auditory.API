@@ -6,6 +6,9 @@ public class MongoDbContext
 {
     private readonly IMongoDatabase _database;
     
+    public IMongoCollection<Domain.Entities.Stream> Streams =>
+        _database.GetCollection<Domain.Entities.Stream>("Streams");
+
     public MongoDbContext(string connectionString, string databaseName)
     {
         var client = new MongoClient(connectionString);
