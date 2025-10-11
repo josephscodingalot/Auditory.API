@@ -2,18 +2,18 @@
 
 public class Stream
 {
-    public Guid Id { get; private set; } = Guid.NewGuid();
+    public Guid Id { get; set; } = Guid.NewGuid();
 
     // Required
-    public string UserName { get; private set; }
-    public string Platform { get; private set; }
-    public int MsPlayed { get; private set; }
-    public string ConnCountry { get; private set; }
-    public string TrackName { get; private set; }
-    public string ArtistName { get; private set; }
-    public string AlbumName { get; private set; }
-    public string SpotifyTrackUri { get; private set; }
-    public DateTime Timestamp { get; private set; }
+    public string UserName { get; set; }
+    public string Platform { get; set; }
+    public int MsPlayed { get; set; }
+    public string ConnCountry { get; set; }
+    public string TrackName { get; set; }
+    public string ArtistName { get; set; }
+    public string AlbumName { get; set; }
+    public string SpotifyTrackUri { get; set; }
+    public DateTime Timestamp { get; set; }
 
     // Optional metadata
     public string? IpAddress { get; private set; }
@@ -32,6 +32,11 @@ public class Stream
     public bool IncognitoMode { get; private set; }
 
     public DateTime CreatedAt { get; private set; } = DateTime.UtcNow;
+
+    public Stream()
+    {
+        
+    }
 
     // Constructors
     public Stream(
@@ -63,7 +68,7 @@ public class Stream
         SpotifyTrackUri = spotifyTrackUri;
         Timestamp = timestamp;
     }
-
+    
     // Example behaviors
     public void MarkAsSkipped() => Skipped = true;
     public bool IsValidStream() => MsPlayed > 30000; // only count >30s as "valid play"
