@@ -1,4 +1,5 @@
-﻿using MediatR;
+﻿using Auditory.Domain;
+using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Auditory.API.Controllers;
@@ -21,7 +22,7 @@ public class StreamController(IMediator mediator) : ControllerBase
         catch (Exception ex)
         {
             Console.WriteLine($"An error occurred: {ex.Message}");
-            return StatusCode(500, "Internal server error");
+            return StatusCode(500, Constants.API.InternalServerError);
         }
     }
 
@@ -43,7 +44,7 @@ public class StreamController(IMediator mediator) : ControllerBase
         catch (Exception ex)
         {
             Console.WriteLine($"An error occurred: {ex.Message}");
-            return StatusCode(500, "Internal server error");
+            return StatusCode(500, Constants.API.InternalServerError);
         }
     }
 
@@ -64,7 +65,28 @@ public class StreamController(IMediator mediator) : ControllerBase
         catch (Exception ex)
         {
             Console.WriteLine($"An error occurred: {ex.Message}");
-            return StatusCode(500, "Internal server error");
+            return StatusCode(500, Constants.API.InternalServerError);
+        }
+    }
+    
+    [HttpPost("import")]
+    public async Task<IActionResult> ImportStream([FromBody] Application.Commands.ImportStreamCommand command)
+    {
+        try
+        {
+            if (command is null)
+                return BadRequest("Command cannot be null");
+            
+            var importedStream = await _mediator.Send(command);
+            if(importedStream is null)
+                return BadRequest("Stream could not be imported");
+            
+            return CreatedAtAction(nameof(GetStreamById), new { streams = importedStream });
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"An error occurred: {ex.Message}");
+            return StatusCode(500, Constants.API.InternalServerError);
         }
     }
 }

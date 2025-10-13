@@ -13,6 +13,7 @@ public interface IStreamRepository
     Task<IEnumerable<Stream>> GetStreamsByArtistNameAsync(string artistName);
     Task<IEnumerable<Stream>> GetStreamsByAlbumNameAsync(string albumName);
     Task<IEnumerable<Stream>> GetStreamsByTrackNameAsync(string trackName);
+    Task<Stream?> GetSteamByTimestampAndUserAsync(DateTime timestamp, string userName);
     Task<IEnumerable<Stream>> GetStreamsByDateRangeAsync(DateTime startDate, DateTime endDate);
     Task<long> GetTotalStreamsCountAsync();
     Task<int> GetTotalMsPlayedAsync();

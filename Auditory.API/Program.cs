@@ -48,7 +48,18 @@ builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBeh
 
 builder.WebHost.UseUrls("http://localhost:8001");
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowReactApp",
+        policy => policy
+            .WithOrigins("http://localhost:3000") // your React app URL
+            .AllowAnyHeader()
+            .AllowAnyMethod());
+});
+
+
 var app = builder.Build();
+app.UseCors("AllowReactApp"); 
 
 // Enable middleware to serve generated Swagger as a JSON endpoint and the Swagger UI
 if (app.Environment.IsDevelopment())
