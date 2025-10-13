@@ -64,6 +64,11 @@ public class StreamRepository(MongoDbContext context) : IStreamRepository
     {
         return await _context.Streams.Find(s => s.Timestamp >= startDate && s.Timestamp <= endDate).ToListAsync();
     }
+    
+    public async Task<Stream?> GetSteamByTimestampAndUserAsync(DateTime timestamp, string userName)
+    {
+        return await _context.Streams.Find(s => s.Timestamp == timestamp && s.UserName == userName).FirstOrDefaultAsync();
+    }
 
     public async Task<long> GetTotalStreamsCountAsync()
     {
