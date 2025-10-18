@@ -59,7 +59,6 @@ builder.Services.AddCors(options =>
 
 
 var app = builder.Build();
-app.UseCors("AllowReactApp"); 
 
 // Enable middleware to serve generated Swagger as a JSON endpoint and the Swagger UI
 if (app.Environment.IsDevelopment())
@@ -68,10 +67,12 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI(c =>
     {
         c.SwaggerEndpoint("/swagger/v1/swagger.json", "Auditory API v1");
-        c.RoutePrefix = string.Empty; 
+        c.RoutePrefix = "swagger";
     });
 }
 
+
+app.UseCors("AllowReactApp"); 
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 app.UseHttpsRedirection();

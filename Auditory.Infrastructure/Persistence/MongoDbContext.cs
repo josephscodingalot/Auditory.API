@@ -1,4 +1,7 @@
-﻿using MongoDB.Driver;
+﻿using MongoDB.Bson;
+using MongoDB.Bson.Serialization;
+using MongoDB.Bson.Serialization.Serializers;
+using MongoDB.Driver;
 
 namespace Auditory.Infrastructure.Persistence;
 
@@ -13,6 +16,8 @@ public class MongoDbContext
     {
         var client = new MongoClient(connectionString);
         _database = client.GetDatabase(databaseName);
+        
+        BsonSerializer.RegisterSerializer(new GuidSerializer(GuidRepresentation.Standard));
     }
     
     public IMongoCollection<T> GetCollection<T>(string collectionName)

@@ -27,11 +27,11 @@ public class ImportStreamCommandHandler(IStreamRepository streamRepository, ILog
             try
             {
                 var existingStream = await _streamRepository.GetSteamByTimestampAndUserAsync(stream.Timestamp, stream.UserName);
-                if (existingStream != null)
-                {
-                    _logger.LogInformation($"Stream already exists for user {stream.UserName} at {stream.Timestamp}. Skipping import.");
-                    continue;
-                }
+                // if (existingStream != null)
+                // {
+                //     _logger.LogInformation($"Stream already exists for user {stream.UserName} at {stream.Timestamp}. Skipping import.");
+                //     continue;
+                // }
 
                 await _streamRepository.AddStreamAsync(stream);
                 importedStreams.Add(stream);

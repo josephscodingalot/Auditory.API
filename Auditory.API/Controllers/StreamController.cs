@@ -60,7 +60,7 @@ public class StreamController(IMediator mediator) : ControllerBase
             if(createdStream is null)
                 return BadRequest("Stream could not be created");
             
-            return CreatedAtAction(nameof(GetStreamById), new { streamId = createdStream.Id, createdStream });
+            return CreatedAtAction(nameof(CreateStream), new { streamId = createdStream.Id, createdStream });
         }
         catch (Exception ex)
         {
@@ -80,8 +80,8 @@ public class StreamController(IMediator mediator) : ControllerBase
             var importedStream = await _mediator.Send(command);
             if(importedStream is null)
                 return BadRequest("Stream could not be imported");
-            
-            return CreatedAtAction(nameof(GetStreamById), new { streams = importedStream });
+
+            return Ok(importedStream);
         }
         catch (Exception ex)
         {
