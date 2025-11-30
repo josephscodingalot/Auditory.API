@@ -1,3 +1,4 @@
+using System.Text;
 using Auditory.API.Middleware;
 using Auditory.Application.Mappings;
 using Auditory.Domain.Interfaces;
@@ -6,7 +7,13 @@ using Microsoft.OpenApi.Models;
 using FluentValidation.AspNetCore;
 using Auditory.Application.Behaviors;
 using Auditory.Application.Handlers;
+using Auditory.Infrastructure.Auth;
+using Auditory.Infrastructure.Persistence;
 using MediatR;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
+using MongoDB.Driver;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,7 +24,43 @@ builder.Services.AddSingleton(new Auditory.Infrastructure.Persistence.MongoDbCon
     mongoSettings.GetValue<string>("DatabaseName") ?? throw new InvalidOperationException("MongoDB database name is not configured.")
 ));
 
+builder.Services.AddSingleton<IMongoClient>(sp =>
+{
+    var settings = sp.GetRequiredService<IOptions<MongoDbSettings>>().Value;
+    return new MongoClient(settings.ConnectionString);
+});
+
+builder.Services.AddScoped(sp =>
+{
+    var client = sp.GetRequiredService<IMongoClient>();
+    var settings = sp.GetRequiredService<IOptions<MongoDbSettings>>().Value;
+    return client.GetDatabase(settings.DatabaseName);
+});
+
+builder.Services.AddAuthentication("Bearer")
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidIssuer = builder.Configuration["Jwt:Issuer"],
+            ValidAudience = builder.Configuration["Jwt:Audience"],
+            IssuerSigningKey = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!)),
+            ValidateIssuerSigningKey = true,
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ClockSkew = TimeSpan.Zero
+        };
+    });
+
+builder.Services.AddAuthorization();
+
+
 builder.Services.AddScoped<IStreamRepository, StreamRepository>();
+builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
+builder.Services.AddScoped<IJwtService, JwtService>();
+
+
 
 //Add services to the container.
 builder.Services.AddControllers()
